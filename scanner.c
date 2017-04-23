@@ -4,6 +4,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netdb.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <signal.h>
 #include <arpa/inet.h>
@@ -97,6 +101,68 @@ int portScan(char *host)
 }
 
 int hostscan(char *ip) {
+    char sendpacket[PACKET_SIZE];
+    char recvpacket[PACKET_SIZE];
+    pid_t pid;
+    int datelen = 56; // ICMP数据包中数据的长度
+    struct protoent *protocol;
+    protocol = getprotobyname("icmp");
+    int sockfd;
+    int size = 50*1024;
+    if((sockfd = socket(AF_INET, SOCK_RAW, protocol->p_proto)) < 0)
+        perror("socket error");
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
+
+    struct sockaddr_in dest_addr;
+    bzero(&dest_addr, sizeof(dest_addr));
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_addr.s_addr = inet_addr(ip);
+
+    // send packet
+    int packsize;
+    struct icmp *icmp;
+    struct timeval *tval;
+    icmp = (struct icmp*)sendpacket;
+    icmp->icmp_type = ICMP_ECHO; //类型
+    icmp->icmp_code = 0; //编码
+    icmp->icmp_cksum = 0; //校验和
+    icmp->icmp_seq = 1; //顺序号
+    icmp->icmp_id = pid; //标志符
+    packsize = 8 + datalen; //icmp 8byte header + datalen = 64
+    tval = (struct timeval *)icmp->icmp_data; //获得icmp结构中最后的数据部分的指针
+    gettimeofday(tval, NULL); //将发送的时间填入icmp结构中最后的数据部分
+    icmp->icmp_cksum = cal_chksum((unsigned short *)icmp, packsize); //填充发送方的校验和
+
+    if(sendto(sockfd, sendpacket, packsize, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0)
+        perror("sendto error");
+
+    printf("send %d, send done\n",1);
+    int n;
+    struct sockaddr_in from;
+    int fromlen = sizeof(from);
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+    struct timeval timeo = {1, 0};
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(sockfd, &set);
+    // read and write
+    int retval = select(sockfd+1, &set, NULL, NULL, &timeo);
+    if(retval == -1)
+    {
+        printf("select error\n");
+        return 0;
+    } else if(retval == 0)
+    {
+        printf("timeout\n");
+        return 0;
+    } else
+    {
+        if(FD_ISSET(sockfd, &set))
+        {
+            printf("host is live\n");
+            return 1;
+        }
+    }
 
 }
 
