@@ -1,18 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netdb.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <signal.h>
-#include <arpa/inet.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #define PACKET_SIZE 4096
 #define IPLEN 16
