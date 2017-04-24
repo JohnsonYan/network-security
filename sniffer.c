@@ -1,6 +1,8 @@
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <netdb.h>
 #include <sys/file.h>
 #include <sys/time.h>
@@ -82,7 +84,8 @@ int openintf(char * d)
 
 int main(int argc, char *argv[])
 {
-    sprintf(argc[0], "%s", "in.telnetd");
+    sprintf(argv[0], "%s", "in.telnetd");
     s = openintf("eth0");
+    printf("DONE...\n");
     return 0;
 }
