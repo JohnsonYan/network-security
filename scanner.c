@@ -19,22 +19,21 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     int nleft = len;
     unsigned short *w = addr;
     unsigned short answer = 0;
-    /* 把ICMP报头二进制数据以2字节为单位累加起来 */
+    // 把ICMP报头二进制数据以2字节为单位累加起来
     while(nleft > 1){
         sum += *w++;
         nleft -= 2;
     }
-    /* 若ICMP报头为奇数个字节，会剩下最后一字节，
-     * 把最后一个字节视为一个2字节数据的高字节，
-     * 这2字节数据的低字节为0，继续累加
-     * */
+    // 若ICMP报头为奇数个字节，会剩下最后一字节，
+    // 把最后一个字节视为一个2字节数据的高字节，
+    // 这2字节数据的低字节为0，继续累加
     if(nleft == 1){
         *(unsigned char *)(&answer) = *(unsigned char *)w;
-        sum += answer;    /* 这里将 answer 转换成 int 整数 */
+        sum += answer;    // 这里将 answer 转换成 int 整数
     }
-    sum = (sum >> 16) + (sum & 0xffff);        /* 高位低位相加 */
-    sum += (sum >> 16);        /* 上一步溢出时，将溢出位也加到sum中 */
-    answer = ~sum;             /* 注意类型转换，现在的校验和为16位 */
+    sum = (sum >> 16) + (sum & 0xffff);        // 高位低位相加
+    sum += (sum >> 16);        // 上一步溢出时，将溢出位也加到sum中
+    answer = ~sum;             // 注意类型转换，现在的校验和为16位
     return answer;
 }
 
@@ -88,20 +87,20 @@ int hostscan(char *ip)
     struct icmp *icmp;
     struct timeval *tval;
     icmp = (struct icmp*)sendpacket;
-    icmp->icmp_type = ICMP_ECHO; //类型
-    icmp->icmp_code = 0; //编码
-    icmp->icmp_cksum = 0; //校验和
-    icmp->icmp_seq = 1; //顺序号
-    icmp->icmp_id = pid; //标志符
-    packsize = 8 + datalen; //icmp 8byte header + datalen = 64
-    tval = (struct timeval *)icmp->icmp_data; //获得icmp结构中最后的数据部分的指针
-    gettimeofday(tval, NULL); //将发送的时间填入icmp结构中最后的数据部分
+    icmp->icmp_type = ICMP_ECHO; // 类型
+    icmp->icmp_code = 0; // 编码
+    icmp->icmp_cksum = 0; // 校验和
+    icmp->icmp_seq = 1; // 顺序号
+    icmp->icmp_id = pid; // 标志符
+    packsize = 8 + datalen; // icmp 8byte header + datalen = 64
+    tval = (struct timeval *)icmp->icmp_data; // 获得icmp结构中最后的数据部分的指针
+    gettimeofday(tval, NULL); // 将发送的时间填入icmp结构中最后的数据部分
     icmp->icmp_cksum = cal_chksum((unsigned short *)icmp, packsize); //填充发送方的校验和
 
     if(sendto(sockfd, sendpacket, packsize, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0)
         perror("sendto error");
 
-    //printf("send %d, send done\n",1);
+    // printf("send %d, send done\n",1);
     int n;
     struct sockaddr_in from;
     int fromlen = sizeof(from);
@@ -134,7 +133,7 @@ int hostscan(char *ip)
 int hostsScan(char *ip)
 {
     int i;
-    char buf[IPLEN],*dest_ip = NULL; //buf为ip的备份，strcat会修改ip，导致无法复用
+    char buf[IPLEN],*dest_ip = NULL; // buf为ip的备份，strcat会修改ip，导致无法复用
     char ip_number[3];
     for(i = 1; i < 256; i++)
     {
