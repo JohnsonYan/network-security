@@ -18,7 +18,7 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     int sum=0;
     int nleft = len;
     unsigned short *w = addr;
-    unsigned short answer = 0;
+    unsigned short answer = 0; // 计算后的校验和
     /* 把ICMP报头二进制数据以2字节为单位累加起来 */
     while(nleft > 1){
         sum += *w++;
@@ -37,7 +37,7 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     answer = ~sum;             /* 注意类型转换，现在的校验和为16位 */
     return answer;
 }
-
+// 端口扫描函数
 int portScan(char *host)
 {
     struct sockaddr_in sa;
@@ -46,14 +46,14 @@ int portScan(char *host)
     for(i=1; i < 65536; i++) {
         // 建立套接字
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        bzero(&sa, sizeof(sa));
+        bzero(&sa, sizeof(sa)); // 归零
         sa.sin_family = AF_INET;
-        inet_pton(AF_INET, host, &sa.sin_addr);
-        sa.sin_port = htons(i);
+        inet_pton(AF_INET, host, &sa.sin_addr); // Converts a human readable IP address to its packed in_addr representation
+        sa.sin_port = htons(i); // Convert 16-bit positive integers from host to network byte order
         // 尝试与目标主机和端口i建立连接
         status = connect(sockfd, (struct sockaddr *)&sa, sizeof(sa));
         if(status == -1) {
-            // 如果连接失败
+            // 连接失败
             close(sockfd);
             continue;
         }
@@ -63,7 +63,7 @@ int portScan(char *host)
     }
     return 0;
 }
-
+// 主机扫描函数
 int hostscan(char *ip)
 {
     char sendpacket[PACKET_SIZE];
@@ -98,8 +98,7 @@ int hostscan(char *ip)
     gettimeofday(tval, NULL); //将发送的时间填入icmp结构中最后的数据部分
     icmp->icmp_cksum = cal_chksum((unsigned short *)icmp, packsize); //填充发送方的校验和
 
-    if(sendto(sockfd, sendpacket, packsize, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0)
-        perror("sendto error");
+    sendto(sockfd, sendpacket, packsize, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
 
     //printf("send %d, send done\n",1);
     int n;
@@ -134,8 +133,8 @@ int hostscan(char *ip)
 int hostsScan(char *ip)
 {
     int i;
-    char buf[IPLEN],*dest_ip = NULL; //buf为ip的备份，strcat会修改ip，导致无法复用
-    char ip_number[3];
+    char buf[IPLEN],*dest_ip = NULL; // buf为ip的备份，strcat会修改ip，导致无法复用
+    char ip_number[4];
     for(i = 1; i < 256; i++)
     {
         strcpy(buf, ip);
