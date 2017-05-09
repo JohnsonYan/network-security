@@ -18,13 +18,8 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     int sum=0;
     int nleft = len;
     unsigned short *w = addr;
-<<<<<<< HEAD
     unsigned short answer = 0; // 计算后的校验和
     /* 把ICMP报头二进制数据以2字节为单位累加起来 */
-=======
-    unsigned short answer = 0;
-    // 把ICMP报头二进制数据以2字节为单位累加起来
->>>>>>> 506b25c67bfbf79a8642a8523bae2761c0239c5e
     while(nleft > 1){
         sum += *w++;
         nleft -= 2;
@@ -41,6 +36,11 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     answer = ~sum;             // 注意类型转换，现在的校验和为16位
     return answer;
 }
+
+void u_alarm_handler()
+{
+}
+
 // 端口扫描函数
 int portScan(char *host)
 {
@@ -56,13 +56,14 @@ int portScan(char *host)
         sa.sin_port = htons(i); // Convert 16-bit positive integers from host to network byte order
         // 尝试与目标主机和端口i建立连接
         status = connect(sockfd, (struct sockaddr *)&sa, sizeof(sa));
-        if(status == -1) {
+        if(status < 0) {
             // 连接失败
-            close(sockfd);
-            continue;
+            printf(".");
         }
-        // 连接成功
-        printf("connected %s:%d\n",host,i);
+        else {
+            // 连接成功
+            printf("\nconnected %s:%d\n", host, i);
+        }
         close(sockfd);
     }
     return 0;
