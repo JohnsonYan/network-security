@@ -37,9 +37,6 @@ unsigned short cal_chksum(unsigned short *addr,int len)
     return answer;
 }
 
-void u_alarm_handler()
-{
-}
 
 // 端口扫描函数
 int portScan(char *host)
@@ -58,7 +55,7 @@ int portScan(char *host)
         status = connect(sockfd, (struct sockaddr *)&sa, sizeof(sa));
         if(status < 0) {
             // 连接失败
-            printf(".");
+            //printf(".");
         }
         else {
             // 连接成功
